@@ -2,4 +2,10 @@
 <resources>
 
     <style name="Theme.MyStocks" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.MyStocks.Splash" parent="Theme.MyStocks">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+    </style>
 </resources>

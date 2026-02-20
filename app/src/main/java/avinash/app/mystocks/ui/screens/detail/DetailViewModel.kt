@@ -8,6 +8,7 @@ import avinash.app.mystocks.data.repository.PortfolioRepository
 import avinash.app.mystocks.data.repository.StockRepository
 import avinash.app.mystocks.domain.model.Holding
 import avinash.app.mystocks.domain.model.PricePoint
+import avinash.app.mystocks.domain.model.RecentStock
 import avinash.app.mystocks.domain.model.Stock
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -17,6 +18,7 @@ import javax.inject.Inject
 data class DetailUiState(
     val stock: Stock? = null,
     val holding: Holding? = null,
+    val recentStocks: List<RecentStock> = emptyList(),
     val isWishlisted: Boolean = false,
     val pricePoints: List<PricePoint> = emptyList(),
     val selectedPeriod: String = "1D",
@@ -45,7 +47,7 @@ class DetailViewModel @Inject constructor(
             observeWishlist()
             observeHolding()
             observePriceForChart()
-            addToRecentViewed()
+            observeRecentStocks()
         }
     }
     
@@ -53,7 +55,10 @@ class DetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             stockRepository.fetchStockDetail(symbol)
-                .onSuccess { loadChartData("1D") }
+                .onSuccess {
+                    addToRecentViewed()
+                    loadChartData("1D")
+                }
                 .onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }
@@ -116,6 +121,17 @@ class DetailViewModel @Inject constructor(
     private fun addToRecentViewed() {
         viewModelScope.launch {
             stockRepository.addToRecentViewed(symbol)
+        }
+    }
+    
+    private fun observeRecentStocks() {
+        viewModelScope.launch {
+            stockRepository.recentViewedItems.collect { entities ->
+                val recent = entities
+                    .filter { it.symbol != symbol }
+                    .map { RecentStock(symbol = it.symbol, name = it.name, logoUrl = it.logoUrl) }
+                _uiState.update { it.copy(recentStocks = recent) }
+            }
         }
     }
     

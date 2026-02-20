@@ -25,7 +25,7 @@ import avinash.app.mystocks.ui.theme.AppTheme
 @Composable
 fun PendingOrderItem(
     order: PendingOrder,
-    onDismiss: () -> Unit,
+    onDismiss: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -35,7 +35,7 @@ fun PendingOrderItem(
         targetValue = when (order.status) {
             OrderStatus.PENDING -> ext.cardBackground
             OrderStatus.SUCCESS -> ext.successContainer
-            OrderStatus.FAILED -> ext.destructiveContainer
+            OrderStatus.FAILED, OrderStatus.CANCELED -> ext.destructiveContainer
         },
         animationSpec = tween(300),
         label = "bg_color"
@@ -44,7 +44,7 @@ fun PendingOrderItem(
     val statusColor = when (order.status) {
         OrderStatus.PENDING -> ext.warning
         OrderStatus.SUCCESS -> ext.stockUp
-        OrderStatus.FAILED -> ext.stockDown
+        OrderStatus.FAILED, OrderStatus.CANCELED -> ext.stockDown
     }
     
     val actionColor = if (order.action == TradeAction.BUY) {
@@ -87,10 +87,10 @@ fun PendingOrderItem(
                             modifier = Modifier.size(20.dp)
                         )
                     }
-                    OrderStatus.FAILED -> {
+                    OrderStatus.FAILED, OrderStatus.CANCELED -> {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Failed",
+                            contentDescription = if (order.status == OrderStatus.FAILED) "Failed" else "Canceled",
                             tint = statusColor,
                             modifier = Modifier.size(20.dp)
                         )
@@ -163,13 +163,14 @@ fun PendingOrderItem(
                         OrderStatus.PENDING -> "Processing..."
                         OrderStatus.SUCCESS -> "Completed"
                         OrderStatus.FAILED -> "Failed"
+                        OrderStatus.CANCELED -> "Canceled"
                     },
                     fontSize = 11.sp,
                     color = statusColor
                 )
             }
             
-            if (order.status != OrderStatus.PENDING) {
+            if (order.status != OrderStatus.PENDING && onDismiss != null) {
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(
                     onClick = onDismiss,

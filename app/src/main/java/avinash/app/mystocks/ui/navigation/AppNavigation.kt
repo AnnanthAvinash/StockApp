@@ -5,9 +5,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.PieChart
+import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -23,6 +25,7 @@ import avinash.app.mystocks.ui.screens.auth.LauncherScreen
 import avinash.app.mystocks.ui.screens.auth.SplashScreen
 import avinash.app.mystocks.ui.screens.detail.DetailScreen
 import avinash.app.mystocks.ui.screens.home.HomeScreen
+import avinash.app.mystocks.ui.screens.orders.OrdersScreen
 import avinash.app.mystocks.ui.screens.portfolio.PortfolioScreen
 import avinash.app.mystocks.ui.screens.trade.TradeScreen
 import avinash.app.mystocks.ui.screens.wishlist.WishlistScreen
@@ -34,6 +37,7 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Portfolio : Screen("portfolio")
     object Wishlist : Screen("wishlist")
+    object Orders : Screen("orders")
     object Detail : Screen("detail/{symbol}") {
         fun createRoute(symbol: String) = "detail/$symbol"
     }
@@ -52,6 +56,7 @@ data class BottomNavItem(
 val bottomNavItems = listOf(
     BottomNavItem(Screen.Home, "Home", Icons.Filled.Home, Icons.Outlined.Home),
     BottomNavItem(Screen.Portfolio, "Portfolio", Icons.Filled.PieChart, Icons.Outlined.PieChart),
+    BottomNavItem(Screen.Orders, "Orders", Icons.Filled.Receipt, Icons.Outlined.Receipt),
     BottomNavItem(Screen.Wishlist, "Wishlist", Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder)
 )
 
@@ -66,6 +71,7 @@ fun AppNavigation() {
     val showBottomNav = currentDestination?.route in listOf(
         Screen.Home.route,
         Screen.Portfolio.route,
+        Screen.Orders.route,
         Screen.Wishlist.route
     )
     
@@ -100,11 +106,11 @@ fun AppNavigation() {
                             },
                             label = { Text(item.label) },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = colorScheme.primary,
-                                selectedTextColor = colorScheme.primary,
+                                selectedIconColor = colorScheme.secondary,
+                                selectedTextColor = colorScheme.secondary,
                                 unselectedIconColor = ext.textSecondary,
                                 unselectedTextColor = ext.textSecondary,
-                                indicatorColor = colorScheme.surfaceVariant
+                                indicatorColor = Color.Transparent
                             )
                         )
                     }
@@ -153,6 +159,10 @@ fun AppNavigation() {
                 )
             }
             
+            composable(Screen.Orders.route) {
+                OrdersScreen()
+            }
+            
             composable(Screen.Wishlist.route) {
                 WishlistScreen(
                     onStockClick = { symbol ->
@@ -169,6 +179,9 @@ fun AppNavigation() {
                     onBackClick = { navController.popBackStack() },
                     onTradeClick = { symbol ->
                         navController.navigate(Screen.Trade.createRoute(symbol))
+                    },
+                    onStockClick = { symbol ->
+                        navController.navigate(Screen.Detail.createRoute(symbol))
                     }
                 )
             }

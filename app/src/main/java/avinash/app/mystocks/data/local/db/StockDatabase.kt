@@ -13,7 +13,7 @@ import avinash.app.mystocks.data.local.entity.*
         PortfolioEntity::class,
         PendingOrderEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class StockDatabase : RoomDatabase() {

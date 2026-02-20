@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import avinash.app.mystocks.R
 import avinash.app.mystocks.util.Constants
 import avinash.app.mystocks.ui.theme.AppTheme
 import kotlinx.coroutines.delay
@@ -48,12 +50,13 @@ fun SplashScreen(
                         ext.gradientEnd
                     )
                 )
-            ),
-        contentAlignment = Alignment.Center
+            )
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.scale(scale.value)
+            modifier = Modifier
+                .align(Alignment.Center)
+                .scale(scale.value)
         ) {
             Icon(
                 imageVector = Icons.Default.ShowChart,
@@ -65,7 +68,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "MyStocks",
+                text = stringResource(R.string.app_name),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onBackground
@@ -79,5 +82,14 @@ fun SplashScreen(
                 color = ext.textSecondary
             )
         }
+        
+        CircularProgressIndicator(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 64.dp)
+                .size(32.dp),
+            color = colorScheme.secondary,
+            strokeWidth = 2.dp
+        )
     }
 }

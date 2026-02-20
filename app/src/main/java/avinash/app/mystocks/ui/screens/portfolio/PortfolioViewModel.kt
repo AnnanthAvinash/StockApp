@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import avinash.app.mystocks.data.remote.websocket.SubscriptionManager
 import avinash.app.mystocks.data.repository.PortfolioRepository
-import avinash.app.mystocks.domain.model.PendingOrder
 import avinash.app.mystocks.domain.model.Portfolio
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -12,9 +11,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class PortfolioUiState(
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val portfolio: Portfolio = Portfolio(emptyList()),
-    val pendingOrders: List<PendingOrder> = emptyList(),
     val error: String? = null
 )
 
@@ -29,7 +27,6 @@ class PortfolioViewModel @Inject constructor(
     
     init {
         observePortfolio()
-        observePendingOrders()
     }
     
     private fun observePortfolio() {
@@ -45,14 +42,6 @@ class PortfolioViewModel @Inject constructor(
         }
     }
     
-    private fun observePendingOrders() {
-        viewModelScope.launch {
-            portfolioRepository.pendingOrders.collect { orders ->
-                _uiState.update { it.copy(pendingOrders = orders) }
-            }
-        }
-    }
-    
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -63,19 +52,8 @@ class PortfolioViewModel @Inject constructor(
         }
     }
     
-    fun dismissPendingOrder(orderId: String) {
-        viewModelScope.launch {
-            portfolioRepository.removePendingOrder(orderId)
-        }
-    }
-    
-    fun clearCompletedOrders() {
-        viewModelScope.launch {
-            portfolioRepository.clearCompletedOrders()
-        }
-    }
-    
     fun onScreenVisible() {
         subscriptionManager.subscribeTab("PORTFOLIO")
+        refresh()
     }
 }

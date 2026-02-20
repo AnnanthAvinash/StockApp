@@ -10,7 +10,7 @@ enum class TradeAction {
 
 @Serializable
 enum class OrderStatus {
-    PENDING, SUCCESS, FAILED
+    PENDING, SUCCESS, FAILED, CANCELED
 }
 
 @Serializable
@@ -42,7 +42,8 @@ data class PendingOrderResponse(
     val quantity: Int,
     val priceAtOrder: Double,
     val status: OrderStatus,
-    val message: String
+    val message: String,
+    val updatedWalletBalance: Double? = null
 )
 
 @Serializable
@@ -57,6 +58,7 @@ data class OrderResult(
     val status: OrderStatus,
     val message: String,
     val holding: Holding? = null,
+    val updatedWalletBalance: Double? = null,
     val timestamp: Long = System.currentTimeMillis()
 )
 

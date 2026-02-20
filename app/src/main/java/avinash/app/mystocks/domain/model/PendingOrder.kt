@@ -8,7 +8,8 @@ data class PendingOrder(
     val priceAtOrder: Double,
     val status: OrderStatus,
     val createdAt: Long,
-    val message: String? = null
+    val message: String? = null,
+    val updatedWalletBalance: Double? = null
 ) {
     val totalValue: Double
         get() = priceAtOrder * quantity
@@ -21,10 +22,13 @@ data class PendingOrder(
     
     val isFailed: Boolean
         get() = status == OrderStatus.FAILED
+    
+    val isCanceled: Boolean
+        get() = status == OrderStatus.CANCELED
 }
 
 enum class OrderStatus {
-    PENDING, SUCCESS, FAILED;
+    PENDING, SUCCESS, FAILED, CANCELED;
     
     companion object {
         fun fromString(value: String): OrderStatus {
@@ -32,6 +36,7 @@ enum class OrderStatus {
                 "PENDING" -> PENDING
                 "SUCCESS" -> SUCCESS
                 "FAILED" -> FAILED
+                "CANCELED" -> CANCELED
                 else -> PENDING
             }
         }

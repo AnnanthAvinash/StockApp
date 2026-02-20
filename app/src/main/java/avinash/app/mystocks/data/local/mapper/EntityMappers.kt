@@ -42,6 +42,18 @@ fun StockDto.toDomain(): Stock = Stock(
     openPrice = openPrice
 )
 
+fun Stock.toEntity(): StockEntity = StockEntity(
+    symbol = symbol,
+    name = name,
+    logoUrl = logoUrl,
+    currentPrice = currentPrice,
+    previousPrice = previousPrice,
+    dayHigh = dayHigh,
+    dayLow = dayLow,
+    volume = volume,
+    openPrice = openPrice
+)
+
 fun List<StockDto>.toStockEntities(): List<StockEntity> = map { it.toEntity() }
 fun List<StockEntity>.toDomainList(): List<Stock> = map { it.toDomain() }
 
@@ -76,7 +88,8 @@ fun PortfolioEntity.toDomain(stock: Stock?): Holding = Holding(
     quantity = quantity,
     averagePrice = averagePrice,
     totalInvested = totalInvested,
-    currentPrice = stock?.currentPrice ?: averagePrice
+    currentPrice = stock?.currentPrice ?: averagePrice,
+    previousClose = stock?.previousPrice ?: 0.0
 )
 
 fun List<HoldingDto>.toPortfolioEntities(): List<PortfolioEntity> = map { it.toEntity() }
@@ -132,7 +145,8 @@ fun PendingOrderResponseDto.toDomain(): PendingOrder = PendingOrder(
     priceAtOrder = priceAtOrder,
     status = OrderStatus.fromString(status),
     createdAt = System.currentTimeMillis(),
-    message = message
+    message = message,
+    updatedWalletBalance = updatedWalletBalance
 )
 
 fun PendingOrderEntity.toDomain(): PendingOrder = PendingOrder(

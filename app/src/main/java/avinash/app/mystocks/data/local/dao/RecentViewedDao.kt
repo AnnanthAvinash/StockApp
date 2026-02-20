@@ -16,6 +16,9 @@ interface RecentViewedDao {
     """)
     fun getRecentViewedStocks(limit: Int = 10): Flow<List<StockEntity>>
     
+    @Query("SELECT * FROM recent_viewed ORDER BY viewedAt DESC LIMIT :limit")
+    fun getRecentViewed(limit: Int = 5): Flow<List<RecentViewedEntity>>
+    
     @Query("SELECT * FROM recent_viewed ORDER BY viewedAt DESC")
     fun getAllRecentViewed(): Flow<List<RecentViewedEntity>>
     
@@ -28,7 +31,6 @@ interface RecentViewedDao {
     @Query("DELETE FROM recent_viewed")
     suspend fun deleteAllRecentViewed()
     
-    // Keep only the most recent N items
     @Query("""
         DELETE FROM recent_viewed 
         WHERE symbol NOT IN (
@@ -37,5 +39,5 @@ interface RecentViewedDao {
             LIMIT :keepCount
         )
     """)
-    suspend fun keepOnlyRecent(keepCount: Int = 20)
+    suspend fun keepOnlyRecent(keepCount: Int = 5)
 }

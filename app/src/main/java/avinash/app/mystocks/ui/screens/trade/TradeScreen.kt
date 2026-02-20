@@ -1,6 +1,7 @@
 package avinash.app.mystocks.ui.screens.trade
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,16 +14,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import avinash.app.mystocks.domain.model.OrderStatus
 import avinash.app.mystocks.domain.model.TradeAction
-import avinash.app.mystocks.ui.components.PriceText
 import avinash.app.mystocks.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 
@@ -37,27 +36,35 @@ fun TradeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val colorScheme = MaterialTheme.colorScheme
     val ext = AppTheme.extendedColors
-    
+
     LaunchedEffect(uiState.orderPlaced) {
         if (uiState.orderPlaced) {
-            val pendingOrder = uiState.pendingOrder
-            if (pendingOrder != null && pendingOrder.status == OrderStatus.PENDING) {
-                snackbarHostState.showSnackbar(
-                    message = "Order placed successfully! Processing...",
-                    duration = SnackbarDuration.Short
-                )
-                delay(500)
-                onTradeComplete()
-            } else if (pendingOrder?.status == OrderStatus.FAILED) {
-                snackbarHostState.showSnackbar(
-                    message = pendingOrder.message ?: "Order failed",
-                    duration = SnackbarDuration.Short
-                )
-                viewModel.resetTradeState()
+            val order = uiState.pendingOrder
+            when (order?.status) {
+                OrderStatus.PENDING -> {
+                    snackbarHostState.showSnackbar(
+                        message = "Order placed! Check Orders tab.",
+                        duration = SnackbarDuration.Short
+                    )
+                    delay(400)
+                    viewModel.resetOrderPlaced()
+                    onTradeComplete()
+                }
+                OrderStatus.FAILED -> {
+                    snackbarHostState.showSnackbar(
+                        message = order.message ?: "Order failed",
+                        duration = SnackbarDuration.Short
+                    )
+                    viewModel.resetTradeState()
+                }
+                else -> {
+                    viewModel.resetOrderPlaced()
+                    onTradeComplete()
+                }
             }
         }
     }
-    
+
     Scaffold(
         containerColor = colorScheme.background,
         snackbarHost = {
@@ -71,15 +78,46 @@ fun TradeScreen(
         },
         topBar = {
             TopAppBar(
-                title = { Text("Trade", color = colorScheme.onBackground) },
+                title = {
+                    uiState.stock?.let { stock ->
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = stock.name,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.onBackground
+                            )
+                            Text(
+                                text = "₹${String.format("%.2f", stock.currentPrice)}",
+                                fontSize = 14.sp,
+                                color = ext.textSecondary
+                            )
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Close",
-                            tint = colorScheme.onBackground
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = colorScheme.onSurface,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
+                },
+                actions = {
+                    Spacer(modifier = Modifier.size(48.dp))
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colorScheme.background
@@ -91,92 +129,46 @@ fun TradeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            uiState.stock?.let { stock ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = ext.cardBackground)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AsyncImage(
-                            model = stock.logoUrl,
-                            contentDescription = stock.name,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(colorScheme.outline),
-                            contentScale = ContentScale.Crop
-                        )
-                        
-                        Spacer(modifier = Modifier.width(12.dp))
-                        
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stock.symbol,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colorScheme.onSurface
-                            )
-                            Text(
-                                text = stock.name,
-                                fontSize = 14.sp,
-                                color = ext.textSecondary
-                            )
-                        }
-                        
-                        PriceText(
-                            price = stock.currentPrice,
-                            previousPrice = stock.previousPrice,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Buy/Sell Toggle
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(28.dp))
                     .background(colorScheme.surfaceVariant)
                     .padding(4.dp)
             ) {
                 TradeActionButton(
-                    text = "BUY",
+                    text = "Buy",
                     isSelected = uiState.action == TradeAction.BUY,
-                    color = ext.stockUp,
                     onClick = { viewModel.setAction(TradeAction.BUY) },
                     modifier = Modifier.weight(1f)
                 )
-                
+
                 TradeActionButton(
-                    text = "SELL",
+                    text = "Sell",
                     isSelected = uiState.action == TradeAction.SELL,
-                    color = ext.stockDown,
                     onClick = { viewModel.setAction(TradeAction.SELL) },
                     modifier = Modifier.weight(1f)
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
+            // Quantity label
             Text(
-                text = "Quantity",
+                text = if (uiState.action == TradeAction.BUY) "Shares to buy" else "Shares to sell",
                 fontSize = 14.sp,
                 color = ext.textSecondary
             )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Quantity selector
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -184,9 +176,14 @@ fun TradeScreen(
             ) {
                 IconButton(
                     onClick = { viewModel.decrementQuantity() },
+                    enabled = uiState.canDecrement && !uiState.isLoading,
                     modifier = Modifier
-                        .size(56.dp)
-                        .background(colorScheme.surfaceVariant, CircleShape)
+                        .size(52.dp)
+                        .border(
+                            width = 1.5.dp,
+                            color = colorScheme.outline,
+                            shape = CircleShape
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Remove,
@@ -194,23 +191,26 @@ fun TradeScreen(
                         tint = colorScheme.onSurface
                     )
                 }
-                
-                Spacer(modifier = Modifier.width(32.dp))
-                
+
                 Text(
                     text = "${uiState.quantity}",
                     fontSize = 48.sp,
                     fontWeight = FontWeight.Bold,
-                    color = colorScheme.onBackground
+                    color = colorScheme.onBackground,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.widthIn(min = 100.dp)
                 )
-                
-                Spacer(modifier = Modifier.width(32.dp))
-                
+
                 IconButton(
                     onClick = { viewModel.incrementQuantity() },
+                    enabled = uiState.canIncrement && !uiState.isLoading,
                     modifier = Modifier
-                        .size(56.dp)
-                        .background(colorScheme.surfaceVariant, CircleShape)
+                        .size(52.dp)
+                        .border(
+                            width = 1.5.dp,
+                            color = colorScheme.outline,
+                            shape = CircleShape
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -219,48 +219,96 @@ fun TradeScreen(
                     )
                 }
             }
-            
-            if (uiState.action == TradeAction.SELL) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Available: ${uiState.maxSellQuantity} shares",
-                    fontSize = 14.sp,
-                    color = ext.textSecondary,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            }
-            
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Balance (Buy) or owned shares (Sell)
+            Text(
+                text = if (uiState.action == TradeAction.BUY) {
+                    "Available: ₹${String.format("%,.2f", uiState.availableBalance)}"
+                } else {
+                    "Owned: ${uiState.maxSellQuantity} shares"
+                },
+                fontSize = 14.sp,
+                color = ext.textSecondary
+            )
+
             Spacer(modifier = Modifier.weight(1f))
-            
+
+            // Cost breakdown card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = ext.cardBackground)
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                border = CardDefaults.outlinedCardBorder()
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Total Value",
-                        fontSize = 16.sp,
-                        color = ext.textSecondary
-                    )
-                    Text(
-                        text = "₹${String.format("%,.2f", uiState.totalValue)}",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.onSurface
-                    )
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Estimated Cost",
+                            fontSize = 14.sp,
+                            color = ext.textSecondary
+                        )
+                        Text(
+                            text = "₹${String.format("%,.2f", uiState.totalValue)}",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colorScheme.onSurface
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Brokerage Fee",
+                            fontSize = 14.sp,
+                            color = ext.textSecondary
+                        )
+                        Text(
+                            text = "Free",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = ext.stockUp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    HorizontalDivider(color = colorScheme.outlineVariant)
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Total Payable",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colorScheme.onSurface
+                        )
+                        Text(
+                            text = "₹${String.format("%,.2f", uiState.totalValue)}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorScheme.onSurface
+                        )
+                    }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
-            uiState.error?.let { error ->
+
+            // Error message (validation or server error)
+            (uiState.validationError ?: uiState.error)?.let { error ->
                 Text(
                     text = error,
                     color = colorScheme.error,
@@ -268,62 +316,43 @@ fun TradeScreen(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
-            
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = ext.surfaceElevated)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        tint = ext.textSecondary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Order will be placed and processed. Check Portfolio for status.",
-                        fontSize = 12.sp,
-                        color = ext.textSecondary
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            val buttonColor = if (uiState.action == TradeAction.BUY) ext.stockUp else ext.stockDown
-            val buttonText = if (uiState.action == TradeAction.BUY) "Place Buy Order" else "Place Sell Order"
-            
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Confirm Order button
             Button(
                 onClick = { viewModel.executeTrade() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                enabled = uiState.canTrade && !uiState.isLoading
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorScheme.secondary,
+                    contentColor = colorScheme.onSecondary
+                ),
+                enabled = uiState.canConfirm && !uiState.isLoading
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = colorScheme.onPrimary
+                        color = colorScheme.onSecondary
                     )
                 } else {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = buttonText,
+                        text = "Confirm Order",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -332,15 +361,15 @@ fun TradeScreen(
 private fun TradeActionButton(
     text: String,
     isSelected: Boolean,
-    color: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val ext = AppTheme.extendedColors
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (isSelected) color else Color.Transparent)
+            .clip(RoundedCornerShape(24.dp))
+            .background(if (isSelected) colorScheme.secondary else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center
@@ -349,7 +378,7 @@ private fun TradeActionButton(
             text = text,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            color = if (isSelected) Color.White else ext.textSecondary
+            color = if (isSelected) colorScheme.onSecondary else ext.textSecondary
         )
     }
 }

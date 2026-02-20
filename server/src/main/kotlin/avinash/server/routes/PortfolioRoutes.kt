@@ -20,12 +20,11 @@ fun Route.portfolioRoutes(stockManager: StockManager) {
         call.respond(portfolio)
     }
     
-    // POST /api/trade - Execute buy/sell (returns pending, result sent via WebSocket)
+    // POST /api/trade - Place order (returns PENDING, result via WebSocket)
     post("/api/trade") {
         try {
             val request = call.receive<TradeRequest>()
             
-            // Validate request
             if (request.quantity <= 0) {
                 return@post call.respond(
                     HttpStatusCode.BadRequest,
@@ -33,17 +32,15 @@ fun Route.portfolioRoutes(stockManager: StockManager) {
                 )
             }
             
-            // Create pending order - result will be sent via WebSocket
-            val pendingOrder = stockManager.createPendingOrder(request)
+            val result = stockManager.createPendingOrder(request)
             
-            // Return pending order response
-            val statusCode = when (pendingOrder.status) {
+            val statusCode = when (result.status) {
                 OrderStatus.PENDING -> HttpStatusCode.Accepted
                 OrderStatus.FAILED -> HttpStatusCode.BadRequest
-                OrderStatus.SUCCESS -> HttpStatusCode.OK
+                else -> HttpStatusCode.OK
             }
             
-            call.respond(statusCode, pendingOrder)
+            call.respond(statusCode, result)
             
         } catch (e: Exception) {
             call.respond(
@@ -51,5 +48,13 @@ fun Route.portfolioRoutes(stockManager: StockManager) {
                 mapOf("error" to "Invalid trade request: ${e.message}")
             )
         }
+    }
+    
+    // GET /api/wallet/{userId} - Get user wallet balance
+    get("/api/wallet/{userId}") {
+        val userId = call.parameters["userId"]
+            ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "User ID required"))
+        val balance = stockManager.getWallet(userId)
+        call.respond(mapOf("balance" to balance))
     }
 }

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import avinash.app.mystocks.data.remote.websocket.SubscriptionManager
 import avinash.app.mystocks.data.repository.HomeRepository
+import avinash.app.mystocks.data.repository.StockRepository
+import avinash.app.mystocks.domain.model.RecentStock
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -18,6 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val homeRepository: HomeRepository,
+    private val stockRepository: StockRepository,
     private val subscriptionManager: SubscriptionManager
 ) : ViewModel() {
 
@@ -29,6 +32,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         wireRepoToState()
+        observeRecentStocks()
         loadInitialData()
     }
 
@@ -45,6 +49,21 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             homeRepository.homeData.collect { data ->
                 _state.update { it.copy(homeData = data, isLoading = false) }
+            }
+        }
+    }
+
+    private fun observeRecentStocks() {
+        viewModelScope.launch {
+            stockRepository.recentViewedItems.collect { entities ->
+                val recent = entities.map { e ->
+                    RecentStock(
+                        symbol = e.symbol,
+                        name = e.name,
+                        logoUrl = e.logoUrl
+                    )
+                }
+                _state.update { it.copy(recentStocks = recent) }
             }
         }
     }

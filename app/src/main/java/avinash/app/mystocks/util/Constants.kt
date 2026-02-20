@@ -18,6 +18,9 @@ object Constants {
     
     // User ID (hardcoded for demo)
     const val USER_ID = "user123"
+
+    // Demo available balance for buy validation
+    const val DEMO_AVAILABLE_BALANCE = 100_000.0
     
     // Splash delay
     const val SPLASH_DELAY_MS = 1500L

@@ -73,8 +73,9 @@ data class PendingOrderResponseDto(
     val action: String,
     val quantity: Int,
     val priceAtOrder: Double,
-    val status: String, // "PENDING", "SUCCESS", "FAILED"
-    val message: String
+    val status: String, // "SUCCESS", "FAILED"
+    val message: String,
+    val updatedWalletBalance: Double? = null
 )
 
 // Order Result (from WebSocket)
@@ -87,9 +88,10 @@ data class OrderResultDto(
     val quantity: Int,
     val pricePerUnit: Double,
     val totalValue: Double,
-    val status: String, // "SUCCESS" or "FAILED"
+    val status: String, // "SUCCESS", "FAILED", "CANCELED"
     val message: String,
     val holding: HoldingDto? = null,
+    val updatedWalletBalance: Double? = null,
     val timestamp: Long
 )
 
@@ -151,4 +153,9 @@ data class TradeResultDto(
 data class WsOrderResultMessage(
     val type: String,
     val result: OrderResultDto
+)
+
+@Serializable
+data class WalletResponseDto(
+    val balance: Double
 )
