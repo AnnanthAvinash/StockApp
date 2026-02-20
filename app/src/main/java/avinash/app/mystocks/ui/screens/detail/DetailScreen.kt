@@ -3,7 +3,6 @@ package avinash.app.mystocks.ui.screens.detail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -12,18 +11,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
+import avinash.app.mystocks.domain.model.Holding
 import avinash.app.mystocks.ui.components.ChangeText
 import avinash.app.mystocks.ui.components.LoadingIndicator
 import avinash.app.mystocks.ui.components.PriceLineChart
 import avinash.app.mystocks.ui.components.PriceText
+import avinash.app.mystocks.ui.components.RecentStocksSection
+import avinash.app.mystocks.ui.components.StockLogo
 import avinash.app.mystocks.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,7 +30,8 @@ import avinash.app.mystocks.ui.theme.AppTheme
 fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onTradeClick: (String) -> Unit
+    onTradeClick: (String) -> Unit,
+    onStockClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val symbol = viewModel.symbol
@@ -50,14 +50,10 @@ fun DetailScreen(
                 title = {
                     uiState.stock?.let { stock ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            AsyncImage(
-                                model = stock.logoUrl,
-                                contentDescription = stock.name,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(colorScheme.outline),
-                                contentScale = ContentScale.Crop
+                            StockLogo(
+                                logoUrl = stock.logoUrl,
+                                name = stock.name,
+                                size = 32.dp
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
@@ -90,6 +86,38 @@ fun DetailScreen(
                     containerColor = colorScheme.background
                 )
             )
+        },
+        bottomBar = {
+            if (!uiState.isLoading && uiState.stock != null) {
+                Surface(
+                    color = colorScheme.background,
+                    shadowElevation = 8.dp
+                ) {
+                    Button(
+                        onClick = { onTradeClick(uiState.stock!!.symbol) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .height(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorScheme.secondary,
+                            contentColor = colorScheme.onSecondary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SwapHoriz,
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Trade",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         if (uiState.isLoading || uiState.stock == null) {
@@ -128,14 +156,8 @@ fun DetailScreen(
                         )
                     }
                 }
-                
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+
+                Column(modifier = Modifier.padding(16.dp)) {
                         if (uiState.isChartLoading) {
                             Box(
                                 modifier = Modifier
@@ -144,7 +166,7 @@ fun DetailScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator(
-                                    color = ext.textSecondary,
+                                    color = colorScheme.secondary,
                                     strokeWidth = 2.dp,
                                     modifier = Modifier.size(24.dp)
                                 )
@@ -191,7 +213,6 @@ fun DetailScreen(
                             }
                         }
                     }
-                }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
@@ -226,77 +247,105 @@ fun DetailScreen(
                 
                 uiState.holding?.let { holding ->
                     Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = ext.cardBackground)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "Your Holdings",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colorScheme.onSurface
-                            )
-                            
-                            Spacer(modifier = Modifier.height(12.dp))
-                            
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column {
-                                    Text("Quantity", fontSize = 12.sp, color = ext.textSecondary)
-                                    Text("${holding.quantity}", color = colorScheme.onSurface, fontWeight = FontWeight.Medium)
-                                }
-                                Column {
-                                    Text("Avg Price", fontSize = 12.sp, color = ext.textSecondary)
-                                    Text("₹${String.format("%.2f", holding.averagePrice)}", color = colorScheme.onSurface, fontWeight = FontWeight.Medium)
-                                }
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text("P&L", fontSize = 12.sp, color = ext.textSecondary)
-                                    val color = if (holding.isProfit) ext.stockUp else ext.stockDown
-                                    val prefix = if (holding.isProfit) "+" else ""
-                                    Text(
-                                        "$prefix₹${String.format("%.2f", holding.profitLoss)}",
-                                        color = color,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    HoldingsCard(holding = holding)
+                }
+                
+                if (uiState.recentStocks.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    RecentStocksSection(
+                        recentStocks = uiState.recentStocks,
+                        onStockClick = onStockClick
+                    )
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
-                
-                Button(
-                    onClick = { onTradeClick(stock.symbol) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorScheme.secondary
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SwapHoriz,
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun HoldingsCard(holding: Holding) {
+    val colorScheme = MaterialTheme.colorScheme
+    val ext = AppTheme.extendedColors
+    
+    val isProfit = holding.isProfit
+    val plColor = if (isProfit) ext.stockUp else ext.stockDown
+    val plPrefix = if (isProfit) "+" else ""
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = ext.cardBackground)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Holdings",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = colorScheme.onSurface
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            HorizontalDivider(color = colorScheme.outline.copy(alpha = 0.3f))
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row {
                     Text(
-                        text = "Trade",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
+                        text = "Total Qty ",
+                        fontSize = 13.sp,
+                        color = ext.textSecondary
+                    )
+                    Text(
+                        text = "${holding.quantity}",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Invested  ₹${String.format("%,.2f", holding.totalInvested)}",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorScheme.onSurface
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(10.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row {
+                    Text(
+                        text = "Avg Price ",
+                        fontSize = 13.sp,
+                        color = ext.textSecondary
+                    )
+                    Text(
+                        text = "₹${String.format("%,.2f", holding.averagePrice)}",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface
+                    )
+                }
+                Text(
+                    text = "P&L  $plPrefix₹${String.format("%,.2f", holding.profitLoss)} (${String.format("%.1f", holding.profitLossPercent)}%)",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = plColor
+                )
             }
         }
     }

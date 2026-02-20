@@ -13,6 +13,9 @@ interface PendingOrderDao {
     @Query("SELECT * FROM pending_orders ORDER BY createdAt DESC")
     fun getAllOrders(): Flow<List<PendingOrderEntity>>
     
+    @Query("SELECT * FROM pending_orders WHERE status != 'SUCCESS' ORDER BY createdAt DESC")
+    fun getNonSuccessOrders(): Flow<List<PendingOrderEntity>>
+    
     @Query("SELECT * FROM pending_orders WHERE orderId = :orderId")
     suspend fun getOrder(orderId: String): PendingOrderEntity?
     
@@ -39,4 +42,7 @@ interface PendingOrderDao {
     
     @Query("SELECT COUNT(*) FROM pending_orders WHERE status = 'PENDING'")
     fun getPendingOrderCount(): Flow<Int>
+    
+    @Query("DELETE FROM pending_orders WHERE status IN ('FAILED', 'CANCELED') AND createdAt < :cutoffTime")
+    suspend fun deleteExpiredOrders(cutoffTime: Long)
 }

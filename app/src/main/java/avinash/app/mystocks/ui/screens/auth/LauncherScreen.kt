@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
+import avinash.app.mystocks.R
 import avinash.app.mystocks.util.BiometricHelper
 import avinash.app.mystocks.util.BiometricStatus
 import avinash.app.mystocks.ui.theme.AppTheme
@@ -96,7 +98,7 @@ fun LauncherScreen(
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "MyStocks",
+                text = stringResource(R.string.app_name),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onBackground

@@ -28,6 +28,9 @@ class StockManager(private val webSocketManager: WebSocketManager) {
     // Pending Orders Map: orderId -> PendingOrder
     private val pendingOrders = ConcurrentHashMap<String, PendingOrder>()
     
+    // Wallet Map: userId -> balance
+    private val userWallets = ConcurrentHashMap<String, Double>()
+    
     // Historical Data: symbol -> List of PricePoints (circular buffer)
     private val historicalData = ConcurrentHashMap<String, MutableList<PricePoint>>()
     
@@ -37,7 +40,6 @@ class StockManager(private val webSocketManager: WebSocketManager) {
     
     private val mutex = Mutex()
     
-    // Coroutine scope for async order processing
     private val orderScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     
     init {
@@ -191,9 +193,11 @@ class StockManager(private val webSocketManager: WebSocketManager) {
         return portfolios.getOrPut(userId) { Portfolio(userId) }
     }
     
+    fun getWallet(userId: String): Double = userWallets.getOrPut(userId) { 100_000.0 }
+    
     /**
-     * Create a pending order and process it asynchronously.
-     * Returns the pending order immediately, actual result sent via WebSocket.
+     * Create pending order. BUY reserves wallet immediately. Actual execution is async.
+     * Returns PENDING always (or FAILED for instant validation errors).
      */
     fun createPendingOrder(request: TradeRequest): PendingOrderResponse {
         val stock = stocks[request.symbol]
@@ -211,9 +215,27 @@ class StockManager(private val webSocketManager: WebSocketManager) {
         }
         
         val currentPrice = stock.currentPrice
+        val totalValue = currentPrice * request.quantity
         val orderId = UUID.randomUUID().toString()
         
-        // Create pending order
+        // BUY: reserve wallet immediately to prevent double-spend
+        if (request.action == TradeAction.BUY) {
+            val balance = getWallet(request.userId)
+            if (totalValue > balance) {
+                return PendingOrderResponse(
+                    orderId = orderId,
+                    symbol = request.symbol,
+                    action = request.action,
+                    quantity = request.quantity,
+                    priceAtOrder = currentPrice,
+                    status = OrderStatus.FAILED,
+                    message = "Insufficient balance",
+                    updatedWalletBalance = balance
+                )
+            }
+            userWallets[request.userId] = balance - totalValue
+        }
+        
         val pendingOrder = PendingOrder(
             orderId = orderId,
             userId = request.userId,
@@ -225,10 +247,8 @@ class StockManager(private val webSocketManager: WebSocketManager) {
             message = "Order placed successfully"
         )
         
-        // Store pending order
         pendingOrders[orderId] = pendingOrder
         
-        // Process order asynchronously
         orderScope.launch {
             processOrderAsync(pendingOrder, request)
         }
@@ -240,15 +260,12 @@ class StockManager(private val webSocketManager: WebSocketManager) {
             quantity = request.quantity,
             priceAtOrder = currentPrice,
             status = OrderStatus.PENDING,
-            message = "Order placed successfully. Processing..."
+            message = "Order placed successfully. Processing...",
+            updatedWalletBalance = getWallet(request.userId)
         )
     }
     
-    /**
-     * Process the order asynchronously with a simulated delay.
-     */
     private suspend fun processOrderAsync(pendingOrder: PendingOrder, request: TradeRequest) {
-        // Simulate processing delay (1-3 seconds)
         delay((1000L..3000L).random())
         
         val stock = stocks[request.symbol]
@@ -268,10 +285,7 @@ class StockManager(private val webSocketManager: WebSocketManager) {
             }
         }
         
-        // Remove from pending orders
         pendingOrders.remove(pendingOrder.orderId)
-        
-        // Send result via WebSocket
         webSocketManager.sendOrderResult(request.userId, result)
     }
     
@@ -311,7 +325,8 @@ class StockManager(private val webSocketManager: WebSocketManager) {
             totalValue = totalValue,
             status = OrderStatus.SUCCESS,
             message = "Successfully bought ${pendingOrder.quantity} shares of ${pendingOrder.symbol}",
-            holding = holding.copy()
+            holding = holding.copy(),
+            updatedWalletBalance = getWallet(pendingOrder.userId)
         )
     }
     
@@ -333,7 +348,8 @@ class StockManager(private val webSocketManager: WebSocketManager) {
                 pricePerUnit = currentPrice,
                 totalValue = totalValue,
                 status = OrderStatus.FAILED,
-                message = "Insufficient shares to sell. You have ${existingHolding?.quantity ?: 0} shares."
+                message = "Insufficient shares. You have ${existingHolding?.quantity ?: 0} shares.",
+                updatedWalletBalance = getWallet(pendingOrder.userId)
             )
         }
         
@@ -346,6 +362,10 @@ class StockManager(private val webSocketManager: WebSocketManager) {
             portfolio.holdings.remove(existingHolding)
         }
         
+        // SELL: add to wallet on success
+        val newBalance = getWallet(pendingOrder.userId) + totalValue
+        userWallets[pendingOrder.userId] = newBalance
+        
         return OrderResult(
             orderId = pendingOrder.orderId,
             userId = pendingOrder.userId,
@@ -356,11 +376,19 @@ class StockManager(private val webSocketManager: WebSocketManager) {
             totalValue = totalValue,
             status = OrderStatus.SUCCESS,
             message = "Successfully sold ${pendingOrder.quantity} shares of ${pendingOrder.symbol}",
-            holding = if (holdingCopy.quantity > 0) holdingCopy else null
+            holding = if (holdingCopy.quantity > 0) holdingCopy else null,
+            updatedWalletBalance = newBalance
         )
     }
     
     private suspend fun sendOrderFailure(pendingOrder: PendingOrder, errorMessage: String) {
+        // BUY: refund reserved wallet
+        if (pendingOrder.action == TradeAction.BUY) {
+            val refund = pendingOrder.priceAtOrder * pendingOrder.quantity
+            val currentBalance = getWallet(pendingOrder.userId)
+            userWallets[pendingOrder.userId] = currentBalance + refund
+        }
+        
         pendingOrders.remove(pendingOrder.orderId)
         
         val result = OrderResult(
@@ -372,7 +400,8 @@ class StockManager(private val webSocketManager: WebSocketManager) {
             pricePerUnit = pendingOrder.priceAtOrder,
             totalValue = pendingOrder.priceAtOrder * pendingOrder.quantity,
             status = OrderStatus.FAILED,
-            message = errorMessage
+            message = errorMessage,
+            updatedWalletBalance = getWallet(pendingOrder.userId)
         )
         
         webSocketManager.sendOrderResult(pendingOrder.userId, result)

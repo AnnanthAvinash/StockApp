@@ -21,7 +21,7 @@ private val DarkColorScheme = darkColorScheme(
     primary = DarkPrimary,
     onPrimary = Color.White,
     secondary = DarkSecondary,
-    onSecondary = Color.White,
+    onSecondary = Color(0xFF1A1A2E),
     tertiary = DarkDestructive,
     background = DarkBackground,
     onBackground = DarkForeground,
@@ -39,7 +39,7 @@ private val LightColorScheme = lightColorScheme(
     primary = LightPrimary,
     onPrimary = Color.White,
     secondary = LightSecondary,
-    onSecondary = Color.White,
+    onSecondary = Color(0xFF1A1A2E),
     tertiary = LightDestructive,
     background = LightBackground,
     onBackground = LightForeground,
@@ -73,7 +73,7 @@ data class ExtendedColorScheme(
 )
 
 private val DarkExtendedColors = ExtendedColorScheme(
-    stockUp = Color(0xFFFFEB3B),
+    stockUp = Color(0xFF34D399),
     stockDown = DarkDestructive,
     warning = Color(0xFFFBBF24),
     info = Color(0xFF58A6FF),
@@ -89,7 +89,7 @@ private val DarkExtendedColors = ExtendedColorScheme(
 )
 
 private val LightExtendedColors = ExtendedColorScheme(
-    stockUp = Color(0xFFFBC02D),
+    stockUp = Color(0xFF10B981),
     stockDown = LightDestructive,
     warning = Color(0xFFF59E0B),
     info = Color(0xFF3B82F6),

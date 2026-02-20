@@ -52,6 +52,7 @@ class StockRepository @Inject constructor(
     suspend fun fetchStockDetail(symbol: String): Result<StockDetail> = runCatching {
         val detail = stockApi.getStock(symbol).toDomain()
         _stockStore.update { it + (symbol to detail.stock) }
+        stockDao.insertStocks(listOf(detail.stock.toEntity()))
         detail
     }
 
@@ -85,9 +86,18 @@ class StockRepository @Inject constructor(
         .map { it.toDomainList() }
 
     suspend fun addToRecentViewed(symbol: String) {
-        recentViewedDao.insertRecentViewed(RecentViewedEntity(symbol))
-        recentViewedDao.keepOnlyRecent(20)
+        val stock = _stockStore.value[symbol]
+        recentViewedDao.insertRecentViewed(
+            RecentViewedEntity(
+                symbol = symbol,
+                name = stock?.name ?: symbol,
+                logoUrl = stock?.logoUrl ?: ""
+            )
+        )
+        recentViewedDao.keepOnlyRecent(5)
     }
+
+    val recentViewedItems: Flow<List<RecentViewedEntity>> = recentViewedDao.getRecentViewed(5)
 
     fun isInWishlist(symbol: String): Flow<Boolean> = wishlistDao.isInWishlist(symbol)
 

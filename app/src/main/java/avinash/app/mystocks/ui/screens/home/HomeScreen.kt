@@ -1,5 +1,6 @@
 package avinash.app.mystocks.ui.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material3.*
@@ -11,8 +12,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
+import avinash.app.mystocks.R
 import avinash.app.mystocks.domain.model.Stock
 import avinash.app.mystocks.ui.components.LoadingIndicator
+import avinash.app.mystocks.ui.components.RecentStocksSection
 import avinash.app.mystocks.ui.components.StockGridCard
 import avinash.app.mystocks.ui.components.ViewAllCard
 
@@ -50,26 +54,37 @@ fun HomeScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
     ) { padding ->
         if (state.isLoading) {
             LoadingIndicator()
         } else {
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(vertical = 16.dp)
+                    .fillMaxSize(),
+                contentPadding = padding
             ) {
-                item {
-                    Text(
-                        text = "MyStocks",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
+
+                if (state.recentStocks.isNotEmpty()) {
+                    item {
+                        RecentStocksSection(
+                            recentStocks = state.recentStocks,
+                            onStockClick = onStockClick
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
 
                 stockGridSection(

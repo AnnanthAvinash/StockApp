@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Avinash Saini | Senior Android Engineer</title>
+
+    <style>
+
+
+/* ============================= */
+/* ===== MEDIUM SECTION ===== */
+/* ============================= */
+
+.medium-intro{
+max-width:820px;
+font-size:18px;
+line-height:1.8;
+color:#cbd6ff;
+margin-bottom:50px;
+}
+
+
+/* ===== CARD ===== */
+
+.medium-card{
+
+display:flex;
+flex-direction:column;
+
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(18px);
+
+border-radius:24px;
+border:1px solid rgba(255,255,255,0.08);
+
+overflow:hidden;
+
+box-shadow:0 40px 100px rgba(0,0,0,.7);
+
+transition:.35s;
+
+}
+
+
+/* HOVER */
+
+.medium-card:hover{
+transform:translateY(-10px) scale(1.02);
+box-shadow:0 60px 140px rgba(0,0,0,.9);
+}
+
+
+
+/* ===== IMAGE ===== */
+
+.medium-card img{
+
+width:100%;
+height:230px;
+
+object-fit:cover;
+
+}
+
+
+
+/* ===== TEXT AREA ===== */
+
+.medium-body{
+
+padding:26px;
+
+display:flex;
+flex-direction:column;
+
+gap:10px;
+
+}
+
+
+
+/* TITLE */
+
+.medium-body h3{
+
+margin:0;
+
+font-size:22px;
+
+letter-spacing:-0.4px;
+
+}
+
+
+
+/* DESCRIPTION (optional if later you add) */
+
+.medium-body p{
+
+margin:0;
+
+color:#b8c3e6;
+
+font-size:16px;
+
+line-height:1.6;
+
+}
+
+
+
+/* READ BUTTON */
+
+.medium-body a{
+
+margin-top:10px;
+
+color:#9fb2ff;
+
+font-weight:600;
+
+text-decoration:none;
+
+transition:.25s;
+
+}
+
+.medium-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(480px,1fr));
+gap:34px;
+aspect-ratio:1/1;
+max-width:400px;
+}
+
+
+.medium-body a:hover{
+color:white;
+}
+
+
+
+        /* ---------- BASE ---------- */
+
+        body{
+        margin:0;
+        font-family:Inter,system-ui,Segoe UI,Roboto;
+        color:#eef2ff;
+        background:#05070f;
+        overflow-x:hidden;
+        }
+
+        /* STARFIELD LAYER */
+
+        body:before{
+        content:"";
+        position:fixed;
+        inset:0;
+        background:
+        radial-gradient(circle at 20% 30%,rgba(120,140,255,.25),transparent 40%),
+        radial-gradient(circle at 80% 60%,rgba(200,120,255,.18),transparent 40%),
+        url("bg.jpg") center/cover no-repeat;
+        z-index:-2;
+        }
+
+        /* DARK GLASS OVERLAY */
+
+        body:after{
+        content:"";
+        position:fixed;
+        inset:0;
+        background:linear-gradient(rgba(6,8,18,.65),rgba(6,8,18,.95));
+        z-index:-1;
+        }
+
+        /* ---------- NAV ---------- */
+
+        nav{
+        position:sticky;
+        top:0;
+        display:flex;
+        justify-content:space-between;
+        padding:18px 40px;
+        backdrop-filter:blur(18px);
+        background:rgba(10,12,30,.55);
+        border-bottom:1px solid rgba(255,255,255,.08);
+        z-index:99;
+        }
+
+        nav a{
+        color:#cbd5ff;
+        text-decoration:none;
+        margin-left:24px;
+        font-weight:500;
+        }
+
+        /* ---------- CONTAINER ---------- */
+
+        .container{
+        max-width:1180px;
+        margin:auto;
+        padding:80px 30px;
+        }
+
+        /* ---------- HERO ---------- */
+
+        .hero{
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:space-between;
+        align-items:center;
+        gap:60px;
+        }
+
+        .hero h1{
+        font-size:64px;
+        margin:0;
+        background:linear-gradient(90deg,#fff,#b9c6ff);
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:transparent;
+        }
+
+        .role{
+        font-size:22px;
+        color:#8fa6ff;
+        margin:12px 0 20px;
+        }
+
+        .hero p{
+        max-width:520px;
+        color:#cdd6ff;
+        line-height:1.7;
+        }
+
+        .hero img{
+        width:260px;
+        border-radius:28px;
+        box-shadow:
+        0 40px 90px rgba(0,0,0,.8),
+        0 0 70px rgba(130,150,255,.2);
+        }
+
+        /* ---------- BUTTON ---------- */
+
+        .btn{
+        display:inline-block;
+        margin-top:28px;
+        padding:15px 26px;
+        border-radius:14px;
+        background:linear-gradient(90deg,#5c7cff,#8b5cff,#5c7cff);
+        background-size:200%;
+        color:white;
+        text-decoration:none;
+        font-weight:600;
+        transition:.4s;
+        }
+        .btn:hover{
+        background-position:right;
+        box-shadow:0 0 35px rgba(130,150,255,.5);
+        }
+
+        /* ---------- HEADINGS ---------- */
+
+        h2{
+        margin-top:120px;
+        font-size:40px;
+        }
+
+        /* ---------- GLASS CARD ---------- */
+
+        .card{
+        background:linear-gradient(145deg,
+        rgba(255,255,255,.12),
+        rgba(255,255,255,.02));
+        border:1px solid rgba(255,255,255,.18);
+        backdrop-filter:blur(30px);
+        border-radius:24px;
+        padding:34px;
+        box-shadow:
+        0 30px 90px rgba(0,0,0,.65),
+        inset 0 0 0 1px rgba(255,255,255,.05);
+        }
+
+        /* ---------- SKILLS ---------- */
+
+        .skills{
+        display:flex;
+        flex-wrap:wrap;
+        gap:14px;
+        }
+
+        .skill{
+        padding:11px 20px;
+        border-radius:999px;
+        background:linear-gradient(
+        135deg,rgba(255,255,255,.2),rgba(255,255,255,.05));
+        border:1px solid rgba(255,255,255,.25);
+        transition:.3s;
+        }
+        .skill:hover{
+        transform:translateY(-4px);
+        box-shadow:0 0 30px rgba(120,140,255,.45);
+        }
+
+        /* ---------- PROJECT GRID ---------- */
+
+        .grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+        gap:32px;
+        }
+
+        .project{
+        background:linear-gradient(
+        145deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+        border:1px solid rgba(255,255,255,.18);
+        border-radius:24px;
+        padding:30px;
+        transition:.35s;
+        }
+
+        .project:hover{
+        transform:translateY(-10px) scale(1.02);
+        box-shadow:
+        0 40px 110px rgba(0,0,0,.8),
+        0 0 60px rgba(130,150,255,.2);
+        }
+
+        .project a{
+        color:#9fb6ff;
+        font-weight:600;
+        text-decoration:none;
+        }
+
+        /* ---------- FOOTER ---------- */
+
+        footer{
+        margin-top:120px;
+        text-align:center;
+        opacity:.7;
+        }
+
+        @media(max-width:700px){
+        .hero h1{font-size:42px}
+        .container{padding:60px 20px}
+        }
+
+        .contact-card{
+max-width:750px;
+padding:34px;
+border-radius:26px;
+background:rgba(255,255,255,.07);
+backdrop-filter:blur(22px);
+border:1px solid rgba(255,255,255,.18);
+box-shadow:0 40px 100px rgba(0,0,0,.7);
+}
+
+.contact-main{
+font-size:22px;
+font-weight:600;
+color:#e7ecff;
+}
+
+.contact-divider{
+height:1px;
+margin:22px 0;
+background:rgba(255,255,255,.2);
+}
+
+.contact-links{
+display:flex;
+flex-wrap:wrap;
+gap:18px;
+}
+
+.contact-links a{
+text-decoration:none;
+color:#a9b9ff;
+padding:10px 16px;
+border-radius:10px;
+background:rgba(255,255,255,.05);
+border:1px solid rgba(255,255,255,.12);
+transition:.25s;
+}
+
+.contact-links a:hover{
+background:linear-gradient(90deg,#5c7cff,#8b5cff);
+color:white;
+transform:translateY(-2px);
+}
+
+        /* ===== PREMIUM ABOUT (FLAT STYLE) ===== */
+
+.about-flat{
+max-width:850px;
+font-size:19px;
+line-height:1.9;
+color:#c9d3ff;
+}
+
+.about-flat strong{
+color:white;
+font-weight:600;
+}
+
+.about-highlight{
+display:inline-block;
+padding:2px 10px;
+border-radius:8px;
+background:linear-gradient(90deg,#5c7cff33,#8b5cff33);
+color:#dfe6ff;
+}
+
+.about-points{
+margin-top:28px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:18px;
+}
+
+.about-pill{
+padding:12px 18px;
+border-radius:999px;
+background:rgba(255,255,255,0.06);
+border:1px solid rgba(255,255,255,.10);
+font-size:15px;
+color:#d7defa;
+}
+
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HERO -->
+
+    <div class="hero">
+        <div>
+
+            <h1>Avinash Saini</h1>
+            <div class="role" id="typing"></div>
+
+            <p>
+                Senior Android engineer building scalable fintech and realtime
+                mobile platforms using Kotlin, Compose and modern architecture.
+            </p>
+
+            <a class="btn" href="https://www.linkedin.com/in/annanthavinash/">LinkedIn</a>
+
+        </div>
+
+        <img src="photo.jpeg">
+
+    </div>
+
+    <h2 class="fade">About</h2>
+
+    <div class="about-flat fade">
+
+        Senior Android engineer with <strong>7+ years</strong> building scalable mobile
+        systems across fintech and consumer platforms. I focus on designing
+        <span class="about-highlight">long-term maintainable architecture</span>,
+        realtime-safe systems, and performance-optimized Android applications.
+
+        I specialize in modern Kotlin-first engineering with deep experience in
+        Compose UI, coroutine-driven networking, and production-grade mobile
+        infrastructure used by large active user bases.
+
+        <div class="about-points">
+
+            <div class="about-pill">🏦 Enterprise Banking Apps</div>
+            <div class="about-pill">⚡ Realtime WebSocket Systems</div>
+            <div class="about-pill">📱 Kotlin + Compose Specialist</div>
+            <div class="about-pill">🚀 Performance-Focused Engineering</div>
+            <div class="about-pill">🧠 Scalable Android Architecture</div>
+            <div class="about-pill">🛠 CI/CD Automation</div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- SKILLS -->
+
+    <h2 id="skills">Core Skills</h2>
+
+    <div class="skills">
+        <div class="skill">Kotlin</div>
+        <div class="skill">Jetpack Compose</div>
+        <div class="skill">Coroutines & Flow</div>
+        <div class="skill">Realtime Systems</div>
+        <div class="skill">Android Architecture</div>
+        <div class="skill">CI/CD</div>
+        <div class="skill">Performance Optimization</div>
+    </div>
+
+    <!-- PROJECTS -->
+    <h2 id="projects">GitHub Projects</h2>
+    <div id="repos" class="grid">Loading repos…</div>
+
+
+    <h2 class="fade">Engineering Articles</h2>
+
+    <div class="medium-intro fade">
+        I write engineering articles focused on real-world Android problems,
+        architecture decisions, coroutine behavior, performance tuning, and
+        production system learnings. These articles reflect practical experience
+        from large-scale mobile applications — not tutorials.
+    </div>
+
+    <div id="mediumPosts" class="medium-grid"></div>
+
+
+    <!-- CONTACT -->
+
+    <h2 class="fade">Contact</h2>
+
+    <div class="card contact-card fade">
+
+        <div class="contact-main">
+            📧 paptwanavinash@gmail.com
+        </div>
+
+        <div class="contact-divider"></div>
+
+        <div class="contact-links">
+
+            <a href="tel:+919680236633">Call</a>
+
+            <a href="https://github.com/AnnanthAvinash" target="_blank">
+                GitHub Profile
+            </a>
+
+            <a href="https://www.linkedin.com/in/annanthavinash/" target="_blank">
+                LinkedIn
+            </a>
+
+            <a href="#" target="_blank">
+                Medium Articles
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <footer>
+        © Avinash Saini — Android Engineer Portfolio
+    </footer>
+
+</div>
+
+<script>
+
+    /* ---------- TYPING HERO ---------- */
+
+    const text="Senior Android Engineer";
+    let i=0;
+    function type(){
+    document.getElementById("typing").textContent=text.slice(0,i++);
+    if(i<=text.length) setTimeout(type,50);
+    }
+    type();
+
+    /* ---------- LOAD GITHUB REPOS ---------- */
+
+    async function load(){
+
+    const box=document.getElementById("repos");
+
+    try{
+
+    const r=await fetch(
+    "https://api.github.com/users/AnnanthAvinash/repos?sort=updated&per_page=100"
+    );
+
+    const repos=await r.json();
+
+    box.innerHTML="";
+
+    repos.
+    filter(repo => repo.name !== "AnnanthAvinash.github.io")   // your portfolio repo)
+    .slice(0,6).forEach(repo=>{
+
+    box.innerHTML+=`
+    <div class="project">
+    <h3>${repo.name}</h3>
+    <p>${repo.description ?? "Android repository"}</p>
+    <p>⭐ ${repo.stargazers_count} | 🍴 ${repo.forks_count}</p>
+    <a href="${repo.html_url}" target="_blank">View Repo →</a>
+    </div>
+    `;
+
+    });
+
+    }catch(e){
+
+    box.innerHTML="GitHub loading failed";
+
+    }
+
+    }
+
+    load();
+
+
+
+async function loadMedium(){
+
+const username = "meAvinash";   // <<< CHANGE THIS
+
+try{
+
+const r = await fetch(
+`https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@${username}`
+);
+
+const data = await r.json();
+
+let html="";
+
+data.items.slice(0,6).forEach(post=>{
+
+// try extract first image from content
+let imgMatch = post.content.match(/<img[^>]+src="([^">]+)"/);
+let img = imgMatch ? imgMatch[1] : "https://picsum.photos/600/400";
+
+html+=`
+<div class="medium-card fade">
+<img src="${img}">
+<div class="medium-body">
+<h3>${post.title}</h3>
+<a href="${post.link}" target="_blank">Read Article →</a>
+</div>
+</div>
+`;
+
+
+});
+
+document.getElementById("mediumPosts").innerHTML = html;
+
+}catch(e){
+
+document.getElementById("mediumPosts").innerHTML =
+"<p>Unable to load Medium articles</p>";
+
+}
+
+}
+
+loadMedium();
+
+
+
+
+</script>
+
+</body>
+</html>

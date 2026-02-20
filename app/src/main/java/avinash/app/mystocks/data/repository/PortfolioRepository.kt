@@ -5,9 +5,8 @@ import avinash.app.mystocks.data.local.dao.PortfolioDao
 import avinash.app.mystocks.data.local.dao.StockDao
 import avinash.app.mystocks.data.local.mapper.*
 import avinash.app.mystocks.data.remote.api.StockApi
-import avinash.app.mystocks.data.remote.dto.PendingOrderResponseDto
+import avinash.app.mystocks.data.remote.dto.OrderResultDto
 import avinash.app.mystocks.data.remote.dto.TradeRequestDto
-import avinash.app.mystocks.data.remote.websocket.WebSocketEvent
 import avinash.app.mystocks.domain.model.*
 import avinash.app.mystocks.util.Constants
 import kotlinx.coroutines.flow.*
@@ -78,41 +77,29 @@ class PortfolioRepository @Inject constructor(
     }
     
     // Handle order result from WebSocket
-    suspend fun handleOrderResult(event: WebSocketEvent.OrderResult) {
-        val result = event.result
-        
-        // Update pending order status
+    suspend fun handleOrderResult(result: OrderResultDto) {
         pendingOrderDao.updateOrderStatus(
             orderId = result.orderId,
             status = result.status,
             message = result.message
         )
         
-        // If successful, update portfolio
         if (result.status == "SUCCESS") {
             result.toHoldingEntity()?.let { holdingEntity ->
                 portfolioDao.insertHolding(holdingEntity)
             } ?: run {
-                // Holding is null means sold all shares
                 portfolioDao.deleteHolding(result.symbol)
             }
-            
-            // Remove completed order after short delay (keep for UI feedback)
-            // User can see it briefly then it disappears
         }
-        
-        // If failed, keep the order in the list with FAILED status
-        // User can dismiss or retry
     }
     
     // Handle legacy trade result from WebSocket (for backwards compatibility)
-    suspend fun handleTradeResult(result: WebSocketEvent.TradeResult) {
+    suspend fun handleTradeResult(result: avinash.app.mystocks.data.remote.websocket.WebSocketEvent.TradeResult) {
         val tradeResult = result.result
         if (tradeResult.success) {
             tradeResult.holding?.let { holding ->
                 portfolioDao.insertHolding(holding.toEntity())
             } ?: run {
-                // Holding is null means sold all shares
                 portfolioDao.deleteHolding(tradeResult.symbol)
             }
         }
@@ -131,4 +118,19 @@ class PortfolioRepository @Inject constructor(
     // Get total invested
     val totalInvested: Flow<Double> = portfolioDao.getTotalInvested()
         .map { it ?: 0.0 }
+    
+    // Non-success orders for Orders tab (pending/failed/canceled only)
+    val allOrders: Flow<List<PendingOrder>> = pendingOrderDao.getNonSuccessOrders()
+        .map { it.toPendingOrderList() }
+    
+    // Delete FAILED/CANCELED orders from previous days
+    suspend fun cleanupExpiredOrders() {
+        val calendar = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.HOUR_OF_DAY, 0)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }
+        pendingOrderDao.deleteExpiredOrders(calendar.timeInMillis)
+    }
 }

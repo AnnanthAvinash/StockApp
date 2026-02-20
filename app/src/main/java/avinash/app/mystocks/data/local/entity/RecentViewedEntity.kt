@@ -7,5 +7,7 @@ import androidx.room.PrimaryKey
 data class RecentViewedEntity(
     @PrimaryKey
     val symbol: String,
+    val name: String = "",
+    val logoUrl: String = "",
     val viewedAt: Long = System.currentTimeMillis()
 )

@@ -48,4 +48,8 @@ class StockApi @Inject constructor(
             parameter("period", period)
         }.body()
     }
+    
+    suspend fun getWallet(userId: String): WalletResponseDto {
+        return client.get("${Constants.BASE_URL}/api/wallet/$userId").body()
+    }
 }

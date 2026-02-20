@@ -1,21 +1,16 @@
 package avinash.app.mystocks.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import avinash.app.mystocks.domain.model.Stock
 import avinash.app.mystocks.ui.theme.AppTheme
 
@@ -41,14 +36,10 @@ fun StockCard(
             modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AsyncImage(
-                model = stock.logoUrl,
-                contentDescription = stock.name,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(colorScheme.outline),
-                contentScale = ContentScale.Crop
+            StockLogo(
+                logoUrl = stock.logoUrl,
+                name = stock.name,
+                size = 40.dp
             )
             
             Spacer(modifier = Modifier.height(8.dp))
